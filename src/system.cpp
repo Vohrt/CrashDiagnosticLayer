@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2023-2024 LunarG, Inc.
+ Copyright (c) 2023-2025 LunarG, Inc.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ std::string System::GetOutputBasePath() {
     std::ifstream cmdline("/proc/self/cmdline");
     std::string app_name;
     cmdline >> app_name;
+    app_name.erase(std::find(app_name.begin(), app_name.end(), '\0'), app_name.end());
     std::string result = "/sdcard/data/Android/";
     result += app_name;
     return result;
@@ -120,6 +121,12 @@ bool System::QueryInfoPosix() {
     {
         os_name_ = "Android";
         os_version_ = GetProperty("ro.product.build.version.release");
+        if (os_version_.empty()) {
+            os_version_ = GetProperty("ro.build.version.release");
+            if (os_version_.empty()) {
+                os_version_ = GetProperty("ro.vendor.build.version.release");
+            }
+        }
 
         std::string sdk_version = GetProperty("ro.product.build.version.sdk");
         if (!sdk_version.empty()) {
